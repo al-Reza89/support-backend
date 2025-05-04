@@ -1,18 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// table attribute name should be capitalized and singular form like User, Product  
-// table name should be plural form like users, products
-
-generator client {
-  provider = "prisma-client-js"
-}
-
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-}
-
 model User {
   id        String   @id @default(uuid())
   createdAt DateTime @default(now())
@@ -33,12 +18,62 @@ model User {
   locale       String?
   provider     String? // 'google', 'local', etc.
 
-  role Role @default(user)
+  role Role @default(USER)
+
+  // Relations
+  tickets         Ticket[]
+  replies         Reply[]
+  assignedTickets Ticket[] @relation("AssignedTickets")
 
   @@map("users")
 }
 
 enum Role {
-  user
-  admin
+  USER
+  AGENT
+}
+
+model Ticket {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  subject String
+  status  TicketStatus @default(OPEN)
+
+  // Customer who created the ticket
+  customerId String
+  customer   User   @relation(fields: [customerId], references: [id])
+
+  // Agent assigned to the ticket (optional)
+  assignedToId String?
+  assignedTo   User?   @relation(name: "AssignedTickets", fields: [assignedToId], references: [id])
+
+  // Ticket content and replies
+  replies Reply[]
+
+  @@map("tickets")
+}
+
+enum TicketStatus {
+  OPEN
+  CLOSED
+}
+
+model Reply {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  content String
+
+  // Author of the reply
+  authorId String
+  author   User   @relation(fields: [authorId], references: [id])
+
+  // Associated ticket
+  ticketId String
+  ticket   Ticket @relation(fields: [ticketId], references: [id])
+
+  @@map("replies")
 }
