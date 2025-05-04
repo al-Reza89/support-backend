@@ -1,0 +1,44 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// table attribute name should be capitalized and singular form like User, Product  
+// table name should be plural form like users, products
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  email           String  @unique
+  phoneNumber     String?
+  hash            String?
+  hashedRt        String?
+  googleId        String? @unique
+  isGoogleAccount Boolean @default(false)
+
+  // Profile information
+  firstName    String?
+  lastName     String?
+  displayName  String?
+  profileImage String?
+  locale       String?
+  provider     String? // 'google', 'local', etc.
+
+  role Role @default(user)
+
+  @@map("users")
+}
+
+enum Role {
+  user
+  admin
+}
