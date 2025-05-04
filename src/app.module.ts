@@ -5,6 +5,7 @@ import { ConfigModule } from '@nestjs/config';
 
 import { ScheduleModule } from '@nestjs/schedule';
 import { TicketsModule } from './tickets/tickets.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { TicketsModule } from './tickets/tickets.module';
     AuthModule,
     PrismaModule,
     TicketsModule,
+    UsersModule,
   ],
   controllers: [],
   providers: [],
