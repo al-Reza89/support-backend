@@ -2,10 +2,9 @@ import { Module } from '@nestjs/common';
 import { AuthModule } from './auth/auth.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { ConfigModule } from '@nestjs/config';
-import { ProductModule } from './product/product.module';
-import { BookingModule } from './booking/booking.module';
+
 import { ScheduleModule } from '@nestjs/schedule';
-import { PurchaseModule } from './purchase/purchase.module';
+import { TicketsModule } from './tickets/tickets.module';
 
 @Module({
   imports: [
@@ -13,9 +12,7 @@ import { PurchaseModule } from './purchase/purchase.module';
     ScheduleModule.forRoot(),
     AuthModule,
     PrismaModule,
-    ProductModule,
-    BookingModule,
-    PurchaseModule,
+    TicketsModule,
   ],
   controllers: [],
   providers: [],
