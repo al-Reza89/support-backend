@@ -28,7 +28,7 @@ export class MagicLinkService {
   //   }
 
   async createSignupLink(dto: AuthDtoSignUp): Promise<void> {
-    // Check if user already exists
+    // Check if user already exist
     const existingUser = await this.prisma.user.findUnique({
       where: { email: dto.email },
     });
@@ -41,6 +41,7 @@ export class MagicLinkService {
       {
         email: dto.email,
         password: dto.password,
+        firstName: dto.firstName,
         type: 'signup',
       },
       {
@@ -69,6 +70,7 @@ export class MagicLinkService {
             email: payload.email,
             hash,
             isGoogleAccount: false,
+            firstName: payload.firstName,
           },
         });
         return user;
