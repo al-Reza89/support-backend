@@ -74,6 +74,11 @@ export class TicketsService {
           },
         },
       });
+
+      if (!tickets) {
+        throw new Error('No tickets found for this user');
+      }
+      return tickets;
     } catch (error) {
       console.error('Error fetching tickets:', error);
       throw new Error('Error fetching tickets');

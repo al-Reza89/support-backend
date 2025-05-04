@@ -31,6 +31,7 @@ export class TicketsController {
 
   @Get()
   async findAll(@GetCurrentUserId() userId: string) {
+    console.log('userId', userId);
     return this.ticketsService.findAll(userId);
   }
 
