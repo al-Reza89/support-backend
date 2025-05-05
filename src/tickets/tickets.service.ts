@@ -7,10 +7,15 @@ import { CreateTicketDto } from './dto/create-ticket.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateReplyDto } from './dto/create-reply.dto';
+import { TicketsGateway } from './tickets.gateway';
 
 @Injectable()
 export class TicketsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private ticketsGateway: TicketsGateway,
+  ) {}
+
   async create(createTicketDto: CreateTicketDto, userId: string) {
     const user = await this.prisma.user.findUnique({
       where: {
@@ -252,7 +257,13 @@ export class TicketsService {
       // Get the user's role to check if they're an agent
       const user = await this.prisma.user.findUnique({
         where: { id: userId },
-        select: { role: true },
+        select: {
+          id: true,
+          role: true,
+          firstName: true,
+          email: true,
+          profileImage: true,
+        },
       });
 
       // Check if the user is the customer, an assigned agent, or an agent (any agent can reply)
@@ -290,20 +301,26 @@ export class TicketsService {
         data: { updatedAt: new Date() },
       });
 
+      // Format the reply data for response and WebSocket
+      const replyData = {
+        id: reply.id,
+        content: reply.content,
+        createdAt: reply.createdAt,
+        author: {
+          id: reply.author.id,
+          name: reply.author.firstName,
+          email: reply.author.email,
+          profileImage: reply.author.profileImage,
+          role: reply.author.role,
+        },
+      };
+
+      // Notify all clients in the ticket room about the new reply
+      this.ticketsGateway.notifyNewReply(ticketId, replyData);
+
       return {
         message: 'Reply added successfully',
-        data: {
-          id: reply.id,
-          content: reply.content,
-          createdAt: reply.createdAt,
-          author: {
-            id: reply.author.id,
-            name: reply.author.firstName,
-            email: reply.author.email,
-            profileImage: reply.author.profileImage,
-            role: reply.author.role,
-          },
-        },
+        data: replyData,
       };
     } catch (error) {
       console.error('Error adding reply:', error);
@@ -333,12 +350,17 @@ export class TicketsService {
         data: { status },
       });
 
+      const statusData = {
+        id: updatedTicket.id,
+        status: updatedTicket.status,
+      };
+
+      // Notify all clients in the ticket room about the status change
+      this.ticketsGateway.notifyStatusChange(ticketId, statusData);
+
       return {
         message: `Ticket status updated to ${status}`,
-        data: {
-          id: updatedTicket.id,
-          status: updatedTicket.status,
-        },
+        data: statusData,
       };
     } catch (error) {
       console.error('Error updating ticket status:', error);
