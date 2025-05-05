@@ -4,6 +4,34 @@ import { ValidationPipe } from '@nestjs/common';
 import * as cookieParser from 'cookie-parser';
 import * as session from 'express-session';
 import { ConfigService } from '@nestjs/config';
+import { IoAdapter } from '@nestjs/platform-socket.io';
+
+// Custom WebSocket adapter with configured CORS
+class CustomIoAdapter extends IoAdapter {
+  private readonly allowedOrigins: string[];
+
+  constructor(app: any, allowedOrigins: string[]) {
+    super(app);
+    this.allowedOrigins = allowedOrigins;
+  }
+
+  createIOServer(port: number, options?: any): any {
+    options = {
+      ...options,
+      cors: {
+        origin: (origin, callback) => {
+          if (!origin || this.allowedOrigins.includes(origin)) {
+            callback(null, true); // Allow the request
+          } else {
+            callback(new Error('Not allowed by CORS')); // Block the request
+          }
+        },
+        credentials: true,
+      },
+    };
+    return super.createIOServer(port, options);
+  }
+}
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -32,6 +60,9 @@ async function bootstrap() {
   const allowedOrigins = configService
     .get<string>('ALLOWED_ORIGINS')
     .split(',');
+
+  // Set up WebSocket adapter with CORS
+  app.useWebSocketAdapter(new CustomIoAdapter(app, allowedOrigins));
 
   app.enableCors({
     origin: (origin, callback) => {
